@@ -1930,8 +1930,8 @@ async function exportPptx() {
           { key: 'INGRESO_TOTAL', label: 'Ingreso Total', fmt: v => fmtMoney(v, 2) },
           { key: 'DINERO_FISICO', label: 'Recaudo Físico', fmt: v => fmtMoney(v, 2) },
           { key: 'INGRESO_ELECTRONICO', label: 'Ingreso Electrónico', fmt: v => fmtMoney(v, 2) },
-          { key: 'TARIFA_PROMEDIO', label: 'Tarifa Promedio', fmt: v => v === null ? 'N/D' : '$' + v.toFixed(2), hi: true },
           { key: 'EVASION', label: 'Evasión Estimada', fmt: v => v === null ? 'N/D' : fmtMoney(v, 2) },
+          { key: 'TARIFA_PROMEDIO', label: 'Tarifa Promedio', fmt: v => v === null ? 'N/D' : '$' + v.toFixed(2), hi: true },
         ];
         const colW = [1.3, 2.2, 1.7, 1.7, 1.7, 1.965, 1.965];
         const cellMargin = [0.02, 0.05, 0.02, 0.05];
@@ -1991,8 +1991,8 @@ async function exportPptx() {
           { key: 'INGRESO_TOTAL', label: 'Ingreso Total', fmt: v => fmtMoney(v, 2) },
           { key: 'DINERO_FISICO', label: 'Recaudo Físico', fmt: v => fmtMoney(v, 2) },
           { key: 'INGRESO_ELECTRONICO', label: 'Ingreso Electrónico', fmt: v => fmtMoney(v, 2) },
-          { key: 'TARIFA_PROMEDIO', label: 'Tarifa Promedio', fmt: v => v === null ? 'N/D' : '$' + v.toFixed(2), hi: true },
           { key: 'EVASION', label: 'Evasión Estimada', fmt: v => v === null ? 'N/D' : fmtMoney(v, 2) },
+          { key: 'TARIFA_PROMEDIO', label: 'Tarifa Promedio', fmt: v => v === null ? 'N/D' : '$' + v.toFixed(2), hi: true },
         ];
         const colW = [1.5, 2.8, 2.05, 2.05, 2.05, 2.08];
         const cellMargin = [0.02, 0.06, 0.02, 0.06];
