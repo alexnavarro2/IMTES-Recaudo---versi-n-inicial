@@ -1184,9 +1184,22 @@ function hallazgosLineTableWeekly(rows) {
   return out.slice(0, 3);
 }
 
+// Total de evasión estimada sumando TODAS las líneas de cierre (no solo las de una
+// lámina) — para el enunciado que va únicamente en la última lámina de la sección.
+function evasionTotalsWeekly(rows) {
+  const evReferencia = rows.map(r => r.wReferencia.EVASION).filter(v => v !== null);
+  const evAnterior = rows.map(r => r.wAnterior ? r.wAnterior.EVASION : null).filter(v => v !== null);
+  const evUltima = rows.map(r => r.wUltima.EVASION).filter(v => v !== null);
+  if (!evReferencia.length && !evAnterior.length && !evUltima.length) return null;
+  return {
+    totReferencia: evReferencia.reduce((a, b) => a + b, 0), hayReferencia: evReferencia.length > 0,
+    totAnterior: evAnterior.reduce((a, b) => a + b, 0), hayAnterior: evAnterior.length > 0,
+    totUltima: evUltima.reduce((a, b) => a + b, 0), hayUltima: evUltima.length > 0,
+  };
+}
+
 function hallazgosCausPuntoVenta(puntos) {
   const out = [];
-  if (!puntos.length) return out;
   const total = puntos.reduce((s, p) => s + p.MONTO, 0);
   const top1 = puntos[0];
   out.push('El punto ' + top1.PUNTO_VENTA + ' concentra ' + fmtPct(safeDiv(top1.MONTO, total)) + ' del ingreso CAUS del periodo cargado.');
@@ -1907,7 +1920,7 @@ async function exportPptx() {
       const lt = computeLineTableWeekly(lineas);
       if (!lt.rows.length) return;
       const chunks = [];
-      for (let i = 0; i < lt.rows.length; i += 4) chunks.push(lt.rows.slice(i, i + 4));
+      for (let i = 0; i < lt.rows.length; i += 3) chunks.push(lt.rows.slice(i, i + 3));
       chunks.forEach((chunkRows, ci) => {
         const s = pres.addSlide();
         const part = chunks.length > 1 ? '  ·  Parte ' + (ci + 1) + ' de ' + chunks.length : '';
@@ -1946,6 +1959,17 @@ async function exportPptx() {
         const rowH = 0.205;
         s.addTable(rows, { x: 0.4, y: 1.30, w: colW.reduce((a, b) => a + b, 0), colW, border: { type: 'solid', color: 'E0E0E0', pt: 0.5 }, autoPage: false, rowH });
         const findings = hallazgosLineTableWeekly(chunkRows);
+        if (ci === chunks.length - 1) {
+          // Solo en la última lámina de la sección: total de evasión estimada de
+          // TODAS las líneas de cierre (no solo las de esta lámina).
+          const tot = evasionTotalsWeekly(lt.rows);
+          if (tot) {
+            findings.push('El total de evasión estimada de las líneas en la estrategia de cierre es de ' +
+              (tot.hayReferencia ? fmtMoney(tot.totReferencia, 2) : 'N/D') + ' en la semana de referencia, ' +
+              (tot.hayAnterior ? fmtMoney(tot.totAnterior, 2) : 'N/D') + ' en la semana anterior, y ' +
+              (tot.hayUltima ? fmtMoney(tot.totUltima, 2) : 'N/D') + ' en la última semana.');
+          }
+        }
         let fy = 1.30 + rowH * rows.length + 0.15;
         findings.forEach(f => { s.addText('✓ ' + f, { x: 0.4, y: fy, w: 12.53, h: 0.26, fontFace: PPTX_FONT, fontSize: 9.5, color: '222222', margin: 0 }); fy += 0.28; });
         pptxAddFooter(s, page); page++;
