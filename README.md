@@ -35,7 +35,7 @@ npm start
 
 ## Verificación y pendientes
 
-Ver [implementación y prueba del lunes](docs/VERIFICACION-ACTUALIZACION-COMPLETA.md), [reportes](docs/VERIFICACION-REPORTES.md) y [pendientes](docs/PENDIENTES-PLATAFORMA.md). Hay pruebas unitarias y de integración con Drive simulado; aún falta una carga real de una semana nueva y medir los XLSX más grandes en Vercel. El procesamiento final tiene hasta 300 segundos; no es un trabajo asíncrono.
+Ver [verificación previa a publicación](docs/VERIFICACION-PUBLICACION.md), [implementación y prueba del lunes](docs/VERIFICACION-ACTUALIZACION-COMPLETA.md), [reportes](docs/VERIFICACION-REPORTES.md) y [pendientes](docs/PENDIENTES-PLATAFORMA.md). Hay pruebas unitarias y de integración con Drive simulado; aún falta una carga real de una semana nueva y medir los XLSX más grandes en Vercel. El procesamiento final tiene hasta 300 segundos; no es un trabajo asíncrono.
 
 ## Google, Supabase y Vercel
 
