@@ -10,7 +10,7 @@
 
 - Configurar variables y callbacks para el dominio definitivo, desplegar en Vercel y comprobar ambas cuentas autorizadas.
 - Verificar en navegador la vista previa dinámica del reporte seleccionado y la navegación de sus seis páginas. La implementación ya sustituye la referencia S40 y no requiere provisionar sus PNG privados.
-- Seguir PUBLICACION-VERCEL.md y comprobar el despliegue real. La compilación final está pendiente de confirmación.
+- Seguir PUBLICACION-VERCEL.md y comprobar el despliegue real. La compilación final con Node.js 24 y webpack ya pasó; los recursos de logo PDF y plantilla PPTX están incluidos en sus funciones.
 
 ## Coherencia y administración
 
