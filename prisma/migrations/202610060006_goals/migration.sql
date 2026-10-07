@@ -1,0 +1,3 @@
+CREATE TABLE "UserGoals" ("userId" TEXT NOT NULL,"goals" JSONB NOT NULL,"version" INTEGER NOT NULL DEFAULT 1,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "UserGoals_pkey" PRIMARY KEY ("userId"),CONSTRAINT "UserGoals_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE);
+ALTER TABLE "UserGoals" ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON "UserGoals" FROM anon,authenticated;

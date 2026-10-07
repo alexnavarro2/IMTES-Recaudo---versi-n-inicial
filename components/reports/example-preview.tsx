@@ -1,0 +1,5 @@
+'use client';
+import Image from 'next/image';
+import {useState} from 'react';
+const titles=['Portada','Credencialización','Credencialización por perfil','Ingreso electrónico','Uso de tarjeta','Contraportada'];
+export function ExamplePreview(){const [selected,setSelected]=useState(0);return <><div className="report-example-preview"><Image src={`/api/reportes/ejemplo-s40/slide-${selected+1}.png`} alt={`Lámina ${selected+1}: ${titles[selected]}`} width={1280} height={720} unoptimized style={{width:'100%',height:'auto'}}/></div><p className="report-caption">Lámina {selected+1} de 6 · {titles[selected]}</p><div className="report-example-thumbnails" aria-label="Láminas del ejemplo">{titles.map((title,i)=><button key={title} type="button" aria-label={`Ver lámina ${i+1}: ${title}`} aria-pressed={selected===i} onClick={()=>setSelected(i)}><Image src={`/api/reportes/ejemplo-s40/slide-${i+1}.png`} alt="" width={256} height={144} unoptimized style={{width:'100%',height:'auto'}}/><span>{i+1}. {title}</span></button>)}</div></>;}

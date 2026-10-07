@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { parseSnapshot,sourceCoverage } from '../lib/history-model';
+const cutoff={year:2026,week:40};
+test('OXXO snapshot excludes open weeks and preserves exact cent totals',()=>{const rows=parseSnapshot('OXXO','anio_iso,semana_iso,frecuencia,monto\n2026,40,2,12.34\n2026,41,8,100\n',cutoff);assert.deepEqual(rows,[{year:2026,week:40,count:2,amountCents:1234}]);});
+test('duplicate aggregate weeks fail instead of double counting',()=>{assert.throws(()=>parseSnapshot('OXXO','anio_iso,semana_iso,frecuencia,monto\n2026,40,2,12\n2026,40,2,12',cutoff),/duplicadas/);});
+test('unique card snapshot is cumulative, and decreasing series is rejected',()=>{const rows=parseSnapshot('VALIDACIONES','Año,Semana,Tarjetas\n2026,39,20\n2026,40,25',cutoff);assert.equal(rows.at(-1)!.count,25);assert.throws(()=>parseSnapshot('VALIDACIONES','Año,Semana,Tarjetas\n2026,39,20\n2026,40,19',cutoff),/disminuye/);});
+test('coverage never treats missing historical weeks as zero or complete',()=>{const coverage=sourceCoverage({source:'OXXO',rows:[{year:2026,week:40,count:2,amountCents:1200}],importedAt:'2026-10-06',warnings:[]},cutoff);assert.equal(coverage.complete,false);assert.equal(coverage.missing.length,39);assert.deepEqual(coverage.latest,cutoff);});
+test('issued profiles aggregate establishments and reject repeated details',()=>{const header='Perfil,Establecimiento,Tarjetas,Semana,Año,Archivo\n';const records='ESTUDIANTE,A,2,40,2026,file.xlsx\nESTUDIANTE,B,3,40,2026,file.xlsx';const rows=parseSnapshot('CREDENCIALIZACION',header+records,cutoff);assert.equal(rows[0].count,5);assert.equal(rows[0].profiles!.ESTUDIANTE,5);assert.throws(()=>parseSnapshot('CREDENCIALIZACION',header+records+'\nESTUDIANTE,A,2,40,2026,file.xlsx',cutoff),/duplicadas/);});

@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+}
+model User {
+  id String @id @default(cuid())
+  name String?
+  email String? @unique
+  emailVerified DateTime?
+  image String?
+  accounts Account[]
+  sessions Session[]
+  driveConnection DriveConnection?
+  driveFolders DriveFolder[]
+  historicalDatasets HistoricalDataset[]
+  weeklyImports WeeklyImport[]
+  weeklyReports WeeklyReport[]
+  weeklyUploads WeeklyUpload[]
+  goals UserGoals?
+  validationCards ValidationCard[]
+}
+model Account {
+  id String @id @default(cuid())
+  userId String
+  type String
+  provider String
+  providerAccountId String
+  refresh_token String? @db.Text
+  access_token String? @db.Text
+  expires_at Int?
+  token_type String?
+  scope String?
+  id_token String? @db.Text
+  session_state String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+model Session {
+  sessionToken String @unique
+  userId String
+  expires DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model VerificationToken {
+  identifier String
+  token String @unique
+  expires DateTime
+  @@unique([identifier, token])
+}
+enum FolderType {
+  OXXO
+  CAUS
+  VALIDACIONES
+  CREDENCIALIZACION
+  REPORTES
+}
+model DriveConnection {
+  userId String @id
+  email String
+  status String @default("connected")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastValidatedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model DriveFolder {
+  id String @id @default(cuid())
+  userId String
+  type FolderType
+  folderId String
+  shortcutId String?
+  resourceKey String?
+  name String
+  status String @default("available")
+  configuredAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  canWrite Boolean @default(false)
+  lastValidatedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, type])
+}
+model HistoricalDataset {
+  id String @id @default(cuid())
+  userId String
+  source FolderType
+  folderId String
+  rows Json
+  provenance Json
+  warnings Json
+  importedAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, source])
+}
+model WeeklyImport {
+ id String @id @default(cuid())
+ userId String
+ source FolderType
+ folderId String
+ year Int
+ week Int
+ fingerprint String
+ status String @default("pending")
+ result Json?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ @@unique([userId, source, folderId, year, week])
+}
+model ValidationCard {
+ id String @id @default(cuid())
+ userId String
+ folderId String
+ year Int
+ cardHash String
+ firstDate String
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ @@unique([userId, folderId, year, cardHash])
+ @@index([userId, folderId, year])
+}
+model WeeklyReport {
+ id String @id @default(cuid())
+ userId String
+ year Int
+ week Int
+ cutoff String
+ fingerprint String
+ summary Json
+ pptx Bytes
+ createdAt DateTime @default(now())
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ @@unique([userId, year, week, fingerprint])
+ @@index([userId, createdAt])
+}
+model WeeklyUpload {
+ id String @id @default(cuid())
+ userId String
+ source FolderType
+ folderId String
+ year Int
+ week Int
+ name String
+ size Int
+ digest String
+ expiresAt DateTime
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ chunks WeeklyUploadChunk[]
+ @@index([userId, expiresAt])
+}
+model WeeklyUploadChunk {
+ uploadId String
+ part Int
+ digest String
+ data Bytes
+ upload WeeklyUpload @relation(fields:[uploadId],references:[id],onDelete:Cascade)
+ @@id([uploadId,part])
+}
+model UserGoals {
+ userId String @id
+ goals Json
+ version Int @default(1)
+ updatedAt DateTime @updatedAt
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+}

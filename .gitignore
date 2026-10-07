@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+.env*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+
+# Private report examples and generated files.
+.private/
+
+.node_modules-evicted/
+
+# Rebuilt from the pinned pdfjs-dist dependency during install/build.
+public/pdf-assets/
+.vercel/
