@@ -4,6 +4,7 @@ import { requireUser } from './session';
 import { db } from './db';
 import { accessToken, driveRequest, safeDriveError, DriveError } from './drive';
 import { resolveFolder } from '@/lib/drive-protocol';
+import { sharedDriveFolders } from './shared-history';
 import { FOLDER_MIME, SHORTCUT_MIME, folderTypes, validId, compatibleFile, type DriveEntry, type DriveState, type BrowseLocation, type FolderType } from '@/lib/drive-model';
 const fields = 'id,name,mimeType,size,modifiedTime,resourceKey,shortcutDetails,capabilities(canAddChildren)';
 function pageToken(value?: string): Record<string,string> { if (value && value.length > 3000) throw new DriveError('error'); return value ? { pageToken: value } : {}; }
@@ -17,11 +18,7 @@ export async function getDriveState(): Promise<DriveState> {
     try {
       await driveRequest(user.id, 'about', { fields: 'user(emailAddress)' });
       await db().driveConnection.update({ where: { userId: user.id }, data: { status: 'connected', lastValidatedAt: new Date() } });
-      const folders = await db().driveFolder.findMany({ where: { userId: user.id } });
-      await Promise.all(folders.map(async folder => {
-        try { const { target } = await getFolder(user.id, folder.shortcutId || folder.folderId, folder.shortcutId ? undefined : folder.resourceKey || undefined); await db().driveFolder.update({ where: { id: folder.id }, data: { status: target.id === folder.folderId ? 'available' : 'changed', canWrite: !!target.capabilities?.canAddChildren, lastValidatedAt: new Date() } }); }
-        catch (error) { await db().driveFolder.update({ where: { id: folder.id }, data: { status: safeDriveError(error), canWrite: false, lastValidatedAt: new Date() } }); }
-      }));
+      await sharedDriveFolders(user.id);
     } catch (error) { await db().driveConnection.updateMany({ where: { userId: user.id }, data: { status: safeDriveError(error) } }); }
     connection = await db().driveConnection.findUnique({ where: { userId: user.id } });
   }
