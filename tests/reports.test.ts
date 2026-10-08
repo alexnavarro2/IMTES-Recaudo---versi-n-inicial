@@ -18,3 +18,18 @@ test('Government cards remain in the total and appear without an invented goal',
 test('PDF preserves six pages and the report cutoff metadata',async()=>{const {buildReportPdf}=await import('../lib/reports/pdf');const {PDFDocument}=await import('pdf-lib');const fs=await import('node:fs/promises');const logo=await fs.readFile('public/branding/logo-imtes-2026.png');const doc=await PDFDocument.load(await buildReportPdf(reportModel(datasets(),period),logo));assert.equal(doc.getPageCount(),6);assert.match(doc.getTitle()||'',/Semana 2/);});
 
 test('saved goals reach both chart series and frozen report goals',()=>{const goals={PREPAGO:120,ESTUDIANTE:50,'TERCERA EDAD':8,DISCAPACIDAD:4,general:200};const model=reportModel(datasets(),period,new Date(),goals);assert.deepEqual(model.charts[0].series[1].values,[200,200]);assert.deepEqual(model.charts[1].series[1].values,[120,50,8,4]);assert.deepEqual(model.goals,goals);goals.general=300;assert.equal(model.goals.general,200);});
+
+test('weekly PPTX labels latest non-null line values and has a bound drawing namespace',async()=>{
+ const model=reportModel(datasets(),period);
+ const zip=await JSZip.loadAsync(await buildWeeklyPptx(await readFile('lib/reports/template.pptx'),model));
+ for(const number of [1,3,4]){
+  const chart=await zip.file(`ppt/slides/charts/chart${number}.xml`)!.async('string');
+  assert.match(chart,/<c:chartSpace xmlns:a="http:\/\/schemas.openxmlformats.org\/drawingml\/2006\/main"/);
+  const series=chart.match(/<c:ser>[\s\S]*?<\/c:ser>/g)!;
+  for(const block of series){assert.match(block,/<c:dLbl><c:idx val="1"\/><c:showVal val="1"\/><\/c:dLbl>/);assert.equal((block.match(/<c:smooth /g)||[]).length,1);assert.ok(block.indexOf('<c:dLbls>')<block.indexOf('<c:cat>'));}
+ }
+ const noReference=datasets();noReference[1].rows=noReference[1].rows.filter(r=>r.year===2026);
+ const missing=await JSZip.loadAsync(await buildWeeklyPptx(await readFile('lib/reports/template.pptx'),reportModel(noReference,period)));
+ const chart=await missing.file('ppt/slides/charts/chart4.xml')!.async('string');
+ assert.ok(!chart.match(/<c:ser>[\s\S]*?<\/c:ser>/)![0].includes('<c:dLbl>'));
+});
