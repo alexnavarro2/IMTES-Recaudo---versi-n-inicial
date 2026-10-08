@@ -24,9 +24,9 @@ test('weekly PPTX labels latest non-null line values and has a bound drawing nam
  const zip=await JSZip.loadAsync(await buildWeeklyPptx(await readFile('lib/reports/template.pptx'),model));
  for(const number of [1,3,4]){
   const chart=await zip.file(`ppt/slides/charts/chart${number}.xml`)!.async('string');
-  assert.match(chart,/<c:chartSpace xmlns:a="http:\/\/schemas.openxmlformats.org\/drawingml\/2006\/main"/);
+  assert.match(chart,/<c:chartSpace[^>]*xmlns:a="http:\/\/schemas.openxmlformats.org\/drawingml\/2006\/main"/);
   const series=chart.match(/<c:ser>[\s\S]*?<\/c:ser>/g)!;
-  for(const block of series){assert.match(block,/<c:dLbl><c:idx val="1"\/><c:showVal val="1"\/><\/c:dLbl>/);assert.equal((block.match(/<c:smooth /g)||[]).length,1);assert.ok(block.indexOf('<c:dLbls>')<block.indexOf('<c:cat>'));}
+  for(const block of series){assert.match(block,/<c:dLbl><c:idx val="1"\/><c:dLblPos val="[tb]"\/><c:showLegendKey val="0"\/><c:showVal val="1"\/><c:showCatName val="0"\/><c:showSerName val="0"\/><c:showPercent val="0"\/><c:showBubbleSize val="0"\/><\/c:dLbl>/);assert.equal((block.match(/<c:smooth /g)||[]).length,1);assert.ok(block.indexOf('<c:dLbls>')<block.indexOf('<c:cat>'));assert.match(block,/<c:numFmt formatCode="#,##0" sourceLinked="0"\/>/);}
  }
  const noReference=datasets();noReference[1].rows=noReference[1].rows.filter(r=>r.year===2026);
  const missing=await JSZip.loadAsync(await buildWeeklyPptx(await readFile('lib/reports/template.pptx'),reportModel(noReference,period)));

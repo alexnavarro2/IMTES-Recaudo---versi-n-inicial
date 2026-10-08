@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import ExcelJS from 'exceljs';
 import type { ReportModel } from './model';
-export const PPTX_RENDERER_VERSION='2026-10-08.1';
+export const PPTX_RENDERER_VERSION='2026-10-08.3';
 const xml=(value:unknown)=>String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
 export async function buildWeeklyPptx(template:Buffer,model:ReportModel):Promise<Buffer>{
  const zip=await JSZip.loadAsync(template);let replacements=0;
@@ -9,7 +9,7 @@ export async function buildWeeklyPptx(template:Buffer,model:ReportModel):Promise
  if(replacements!==6)throw new Error('La plantilla de reporte no contiene los seis campos esperados.');
  for(let i=0;i<model.charts.length;i++){
  const chart=model.charts[i],file=`ppt/slides/charts/chart${i+1}.xml`;let content=await zip.file(file)!.async('string');let seriesIndex=0;
- content=content.replace('<c:chartSpace ', '<c:chartSpace xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" ');
+ if(!content.match(/<c:chartSpace[^>]*xmlns:a=/))content=content.replace('<c:chartSpace ', '<c:chartSpace xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" ');
  content=content.replace(/(<c:title>[\s\S]*?<a:t>)[\s\S]*?(<\/a:t>)/,`$1${xml(chart.title)}$2`);
  content=content.replace(/<c:ser>[\s\S]*?<\/c:ser>/g,block=>{const series=chart.series[seriesIndex],column=String.fromCharCode(66+seriesIndex++);const seriesCategories=series?.categories||chart.categories;if(!series||series.values.length!==seriesCategories.length)throw new Error('Series de reporte incompletas.');const cache=(values:(string|number|null)[])=>`<c:ptCount val="${values.length}"/>`+values.flatMap((v,idx)=>v===null?[]:[`<c:pt idx="${idx}"><c:v>${xml(v)}</c:v></c:pt>`]).join('');
  const categories=`<c:cat><c:strRef><c:f>'Chart Data'!$A$2:$A$${seriesCategories.length+1}</c:f><c:strCache>${cache(seriesCategories)}</c:strCache></c:strRef></c:cat>`;
@@ -19,12 +19,12 @@ export async function buildWeeklyPptx(template:Buffer,model:ReportModel):Promise
  // Show milestones and the latest values without covering every weekly point.
  const valid=series.values.flatMap((value,index)=>value===null?[]:[index]);
  const last=valid.at(-1);
- const indices=last===undefined?[]:i===0?(seriesIndex===1?valid.filter(index=>(index+1)%10===0||index===last):[last]):valid.filter(index=>index===last||index===last-2||index===last-4);
- const labels=indices.map(index=>`<c:dLbl><c:idx val="${index}"/><c:showVal val="1"/></c:dLbl>`).join('');
+ const indices=last===undefined?[]:i===0?(seriesIndex===1?valid.filter(index=>(index+1)%10===0||index===last):[last]):[last];
  const position=i===3?(seriesIndex===1?'t':'b'):(seriesIndex===1?'t':'b');
- const labelFormat=i===2?'$#,##0':'#,##0';
- const tx='<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1050" b="1"><a:solidFill><a:srgbClr val="333333"/></a:solidFill><a:latin typeface="Calibri"/></a:defRPr></a:pPr><a:endParaRPr lang="es-MX"/></a:p></c:txPr>';
- const labelXml=`<c:dLbls>${labels}<c:numFmt formatCode="${labelFormat}" sourceLinked="0"/>${tx}<c:dLblPos val="${position}"/><c:showLegendKey val="0"/><c:showVal val="0"/><c:showCatName val="0"/><c:showSerName val="0"/></c:dLbls>`;
+ const labels=indices.map(index=>`<c:dLbl><c:idx val="${index}"/><c:dLblPos val="${position}"/><c:showLegendKey val="0"/><c:showVal val="1"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/><c:showBubbleSize val="0"/></c:dLbl>`).join('');
+ const labelFormat='#,##0';
+ const tx='<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1000"><a:solidFill><a:srgbClr val="333333"/></a:solidFill><a:latin typeface="Calibri"/></a:defRPr></a:pPr><a:endParaRPr lang="es-MX"/></a:p></c:txPr>';
+ const labelXml=`<c:dLbls>${labels}<c:numFmt formatCode="${labelFormat}" sourceLinked="0"/>${tx}<c:dLblPos val="${position}"/><c:showLegendKey val="0"/><c:showVal val="0"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/><c:showBubbleSize val="0"/></c:dLbls>`;
  block=block.replace(/<c:dLbls>[\s\S]*?<\/c:dLbls>/g,'').replace('<c:cat>',labelXml+'<c:cat>');
  block=block.replace(/<c:smooth[^>]*\/>/g,'').replace('</c:ser>','<c:smooth val="0"/></c:ser>');
  }
