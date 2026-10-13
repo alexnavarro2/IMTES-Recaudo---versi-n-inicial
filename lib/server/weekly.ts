@@ -18,6 +18,7 @@ export async function upload(userId:string,token:string,folderId:string,key:stri
  const response=await fetch(location,{method:'PUT',headers:{Authorization:`Bearer ${token}`,'Content-Type':mimeType},body:new Uint8Array(data),signal:AbortSignal.timeout(120000)});if(!response.ok)throw new Error('La carga en Drive no terminó. Puedes reintentar con los mismos archivos.');const file=await response.json();if(typeof file.id!=='string')throw new Error('Drive no confirmó el archivo guardado.');return file.id as string;
 }
 export async function processWeekly(userId:string,source:WeeklySource,period:IsoWeek,files:InputFile[],expectedFolderId?:string){
+ if(source==='OXXO')return (await import('./oxxo')).processOxxo(userId,period,files,expectedFolderId);
  const folder=await db().driveFolder.findUnique({where:{userId_type:{userId,type:source}}});if(!folder)throw new Error(`Configura primero la carpeta ${source}.`);if(expectedFolderId&&expectedFolderId!==folder.folderId)throw new Error("La carpeta cambió durante la carga. Selecciona de nuevo los archivos.");
  const parsed=await parseWeekly(source,files,period,process.env.TOKEN_ENCRYPTION_KEY!);files=[...files].sort((a,b)=>hash(a.data).localeCompare(hash(b.data)));const digest=fingerprint(source,folder.folderId,period,files);
  // A database advisory lock serializes all weeks for this source/folder across server instances.
