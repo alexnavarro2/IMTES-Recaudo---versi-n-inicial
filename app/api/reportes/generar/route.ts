@@ -12,5 +12,5 @@ export async function POST(request:Request){
  // Validate separately so only known data-validation messages reach the browser.
  try{reportModel(await historyData(session.user.id),period);}catch(e){if(e instanceof Error&&/^(Periodo|Solo se generan|Faltan datos|Revisa las advertencias|Falta |Hay semanas|Hay cifras|Falta el detalle|Perfil |Los perfiles|El acumulado|Las tarjetas)/.test(e.message))return Response.json({error:e.message},{status:400});throw e;}
  const result=await generateWeeklyReport(session.user.id,period);revalidatePath('/reportes');return Response.json({result:{...result,url:`/api/reportes/${result.id}/pptx`}},{headers:{'Cache-Control':'private, no-store'}});
- }catch{return Response.json({error:'No fue posible generar el PPTX. Revisa la conexión y vuelve a intentarlo.'},{status:500});}
+ }catch(e){if(e instanceof Error&&/^(No se encontró recaudoElect_semana_|Hay varios anexos recaudoElect_semana_|El anexo |El año del anexo |El total del anexo |Falta el ingreso de referencia |No fue posible leer el anexo de ingresos autorizado)/.test(e.message))return Response.json({error:e.message},{status:400});return Response.json({error:'No fue posible generar el PPTX. Revisa la conexión y vuelve a intentarlo.'},{status:500});}
 }
