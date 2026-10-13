@@ -8,7 +8,7 @@ import type { Source } from '@/types/domain';
 import type { IsoWeek } from '@/lib/iso-week';
 import { SourceUploadCard, type UploadSource } from './SourceUploadCard';
 const sources:UploadSource[]=[
- {name:'CREDENCIALIZACION',title:'CREDENCIALIZACIÓN',description:'Tarjetas emitidas por perfil',formatLabel:'Reporte semanal .xlsx o consolidado .xlsx/.csv',extensions:['xlsx','csv']},
+ {name:'CREDENCIALIZACION',title:'CREDENCIALIZACIÓN',description:'Tarjetas emitidas por perfil',formatLabel:'Movimientos BEA .xlsx, reporte semanal .xlsx o consolidado .xlsx/.csv',extensions:['xlsx','csv']},
  {name:'OXXO',title:'OXXO',description:'Operaciones y recargas electrónicas',formatLabel:'Archivo esperado: .DAT',extensions:['dat']},
  {name:'CAUS',title:'CAUS',description:'Ventas de tarjetas y recargas',formatLabel:'Archivo esperado: .xlsx o .csv',extensions:['xlsx','csv']},
  {name:'VALIDACIONES',title:'VALIDACIONES BEA',description:'Uso de tarjetas del sistema BEA',formatLabel:'Archivo esperado: .xlsx o .csv',extensions:['csv','xlsx']},
